@@ -47,7 +47,7 @@ async def get_fortune(user_id, username) -> Union[str, bytes]:
                 return image
         else:
             fortune = log[user_id]
-            return '你今天已经抽过签了，你的今日运势是：' + fortune
+            return f'你今天已经抽过签了，你的今日运势是：{fortune}'
     except:
         logger.warning(traceback.format_exc())
         return None
@@ -100,7 +100,7 @@ def get_face(luck) -> str:
 
 async def create_image(username, luck, fortune, content, face) -> bytes:
     if len(username) > 50:
-        username = username[:50] + '...'
+        username = f'{username[:50]}...'
 
     template = env.get_template('fortune.html')
     html = await template.render_async(username=username,

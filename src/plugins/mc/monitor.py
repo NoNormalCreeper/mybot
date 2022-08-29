@@ -14,14 +14,14 @@ last_time = {}
 
 def user_type(user_id: str):
     p_group = r'group_(\d+)'
+    if match := re.fullmatch(p_group, user_id):
+        return 'group', match[1]
     p_private = r'private_(\d+)'
-    match = re.fullmatch(p_group, user_id)
-    if match:
-        return 'group', match.group(1)
-    match = re.fullmatch(p_private, user_id)
-    if match:
-        return 'private', match.group(1)
-    return '', user_id
+    return (
+        ('private', match[1])
+        if (match := re.fullmatch(p_private, user_id))
+        else ('', user_id)
+    )
 
 
 async def send_bot_msg(user_id: str, msg):
@@ -53,10 +53,13 @@ async def dynmap_monitor():
             last_time[user_id] = updates[-1]['timestamp']
             continue
 
-        chats = []
-        for update in updates:
-            if update['type'] == 'chat' and update['timestamp'] > last_time[user_id]:
-                chats.append(update)
+        chats = [
+            update
+            for update in updates
+            if update['type'] == 'chat'
+            and update['timestamp'] > last_time[user_id]
+        ]
+
         last_time[user_id] = updates[-1]['timestamp']
 
         if not chats:

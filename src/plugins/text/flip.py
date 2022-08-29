@@ -36,6 +36,6 @@ flip_table = {
 
 
 flip_table_new = flip_table.copy()
-for i in flip_table.keys():
+for i in flip_table:
     flip_table_new[flip_table[i]] = i
 flip_table = flip_table_new

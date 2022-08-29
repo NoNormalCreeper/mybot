@@ -42,10 +42,10 @@ async def get_board_name(name: str) -> Tuple[str, float]:
 
 async def get_board_id(name: str) -> int:
     board_all = await cc98_api.board_all2()
-    for board in board_all.values():
-        if board['name'] == name:
-            return board['id']
-    return 0
+    return next(
+        (board['id'] for board in board_all.values() if board['name'] == name),
+        0,
+    )
 
 
 async def get_topics(board_name: str):
@@ -60,9 +60,7 @@ async def get_topics(board_name: str):
 
 async def download(url: str) -> bytes:
     x = await cc98_api.s.get(url)
-    if x.status_code == 200:
-        return x.content
-    return None
+    return x.content if x.status_code == 200 else None
 
 
 async def print_topics(topics: List[dict]) -> List[str]:
@@ -75,14 +73,14 @@ async def print_topics(topics: List[dict]) -> List[str]:
 
 
 async def print_posts(topic: dict, page: int) -> List[str]:
-    msgs = []
-    msgs.append('回复"+"、"-"或页码翻页，回复“结束”结束会话')
     boards = await cc98_api.board(topic['boardId'])
     board_name = boards['name']
     reply_num = topic["replyCount"] + 1
     page_num = math.ceil(reply_num / 10)
-    msgs.append(
-        f"[{board_name}]{topic['title']}\n[page: {page}/{page_num}]")
+    msgs = [
+        '回复"+"、"-"或页码翻页，回复“结束”结束会话',
+        f"[{board_name}]{topic['title']}\n[page: {page}/{page_num}]",
+    ]
 
     start_num = (page - 1) * 10
     posts = await cc98_api.topic_post(topic['id'], from_=start_num, size=10)
@@ -103,10 +101,7 @@ async def replace_url(url: str) -> Union[str, MessageSegment]:
     if os.path.splitext(url)[-1] not in image_ext:
         return url
     data = await download(url)
-    if data:
-        return MessageSegment.image(data)
-    else:
-        return url
+    return MessageSegment.image(data) if data else url
 
 
 async def replace_emoji(emoji: str) -> Union[str, MessageSegment]:
@@ -116,8 +111,7 @@ async def replace_emoji(emoji: str) -> Union[str, MessageSegment]:
         if re.fullmatch(params['pattern'], emoji):
             dir_name = params['dirname']
     if dir_name:
-        data = get_emoji(dir_name, emoji)
-        if data:
+        if data := get_emoji(dir_name, emoji):
             return MessageSegment.image(data)
     return f'[{emoji}]'
 
@@ -131,12 +125,22 @@ async def simplify_content(s: str):
     quote_user = r'\[quote\]\[b\]以下是引用(\d*?)楼.*?\[/b\](.*)\[/quote\]'
     line = '\n- - - - - - - - - - - - - - -'
     while re.findall(quote_user, s, flags=re.S):
-        s = re.sub(quote_user, lambda x: (
-            '# 引用了' + x.group(1) + '楼的发言 #' + x.group(2) + line), s, flags=re.S)
+        s = re.sub(
+            quote_user,
+            lambda x: f'# 引用了{x.group(1)}楼的发言 #{x.group(2)}{line}',
+            s,
+            flags=re.S,
+        )
+
     quote_content = r'\[quote\](.*)\[/quote\]'
     while re.findall(quote_content, s, flags=re.S):
-        s = re.sub(quote_content, lambda x: (
-            ' # 以下为引用内容：# ' + x.group(1) + line), s, flags=re.S)
+        s = re.sub(
+            quote_content,
+            lambda x: f' # 以下为引用内容：# {x.group(1)}{line}',
+            s,
+            flags=re.S,
+        )
+
 
     ignore_patterns = [
         r'\[b](.*?)\[/b]',
@@ -158,8 +162,13 @@ async def simplify_content(s: str):
     for p in ignore_patterns:
         s = re.sub(p, lambda x: x.group(1), s, flags=re.S)
 
-    s = re.sub(r'\[bili](.*?)\[/bili]',
-               lambda x: 'https://www.bilibili.com/video/av' + x.group(1), s, flags=re.S)
+    s = re.sub(
+        r'\[bili](.*?)\[/bili]',
+        lambda x: f'https://www.bilibili.com/video/av{x.group(1)}',
+        s,
+        flags=re.S,
+    )
+
     s = re.sub(r'\[line]', line, s)
 
     img_patterns = [

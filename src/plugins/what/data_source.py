@@ -26,27 +26,25 @@ async def get_nbnhhsh(keyword: str, force: bool = False):
         if 'trans' in i:
             if i['trans']:
                 title = i['name']
-                result.append(f"{i['name']} => {'，'.join(i['trans'])}")
+                result.append(f"{title} => {'，'.join(i['trans'])}")
         elif force:
             if i['inputting']:
                 title = i['name']
-                result.append(f"{i['name']} => {'，'.join(i['inputting'])}")
+                result.append(f"{title} => {'，'.join(i['inputting'])}")
     result = '\n'.join(result)
-    if not force:
-        if fuzz.ratio(title, keyword) < 90:
-            return '', ''
+    if not force and fuzz.ratio(title, keyword) < 90:
+        return '', ''
     return title, result
 
 
 async def get_jiki(keyword: str, force: bool = False):
     keyword = quote(keyword)
-    search_url = 'https://jikipedia.com/search?phrase={}'.format(keyword)
+    search_url = f'https://jikipedia.com/search?phrase={keyword}'
     async with httpx.AsyncClient() as client:
         resp = await client.get(url=search_url)
         result = resp.text
 
-    if '对不起！小鸡词典暂未收录该词条' in result and \
-            (not force or (force and '你可能喜欢的词条' not in result)):
+    if '对不起！小鸡词典暂未收录该词条' in result and (not force or '你可能喜欢的词条' not in result):
         return '', ''
 
     dom = etree.HTML(result)
@@ -69,9 +67,8 @@ async def get_jiki(keyword: str, force: bool = False):
     img_urls = dom.xpath(
         "//div[@class='section card-middle']/div/div/div[@class='show-images']/img/@src")
 
-    if not force:
-        if fuzz.ratio(title, keyword) < 90:
-            return '', ''
+    if not force and fuzz.ratio(title, keyword) < 90:
+        return '', ''
     msg = Message()
     msg.append(title + ':\n---------------\n')
     msg.append(content)
@@ -87,12 +84,11 @@ async def get_baidu(keyword: str, force: bool = False):
     match_obj = re.match(r'(.*?)(（.*?）)?\n(.*)', content)
     if not match_obj:
         return '', ''
-    title = match_obj.group(1)
-    subtitle = match_obj.group(2)
-    text = match_obj.group(3)
-    if not force:
-        if fuzz.ratio(title, keyword) < 90:
-            return '', ''
+    title = match_obj[1]
+    subtitle = match_obj[2]
+    text = match_obj[3]
+    if not force and fuzz.ratio(title, keyword) < 90:
+        return '', ''
 
     msg = title
     if subtitle:

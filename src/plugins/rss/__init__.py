@@ -85,9 +85,9 @@ rss = on_shell_command('rss', parser=rss_parser, block=True, priority=12)
 
 def get_id(event: MessageEvent):
     if isinstance(event, GroupMessageEvent):
-        return 'group_' + str(event.group_id)
+        return f'group_{str(event.group_id)}'
     else:
-        return 'private_' + str(event.user_id)
+        return f'private_{str(event.user_id)}'
 
 
 @rss.handle()

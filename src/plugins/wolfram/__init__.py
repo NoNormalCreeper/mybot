@@ -26,13 +26,9 @@ wolfram = on_command('wolfram', aliases={'wolframalpha'},
 async def _(msg: Message = CommandArg()):
     text = msg.extract_plain_text().strip()
 
-    plaintext = False
     pattern = [r'-p +.*?', r'.*? +-p',
                r'--plaintext +.*?', r'.*? +--plaintext']
-    for p in pattern:
-        if re.fullmatch(p, text):
-            plaintext = True
-            break
+    plaintext = any(re.fullmatch(p, text) for p in pattern)
     text = text.replace('-p', '').replace('--plaintext', '').strip()
     if not text:
         await wolfram.finish()

@@ -11,9 +11,7 @@ from .bug import bug_code, bug_level
 async def get_cxh_text(text: str):
 
     def get_pinyin(s):
-        if s in pinyin:
-            return pinyin[s]
-        return ''
+        return pinyin[s] if s in pinyin else ''
 
     result = ''
     for i in range(len(text)):
@@ -43,18 +41,12 @@ async def get_hxw_text(text: str):
 
 
 async def get_ant_text(text: str):
-    result = ''
-    for s in text:
-        result += s + chr(1161)
-    return result
+    return ''.join(s + chr(1161) for s in text)
 
 
 async def get_flip_text(text: str):
     text = text.lower()
-    result = ''
-    for s in text[::-1]:
-        result += flip_table[s] if s in flip_table else s
-    return result
+    return ''.join(flip_table[s] if s in flip_table else s for s in text[::-1])
 
 
 async def get_bug_text(text: str):

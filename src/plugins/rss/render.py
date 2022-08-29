@@ -80,29 +80,26 @@ def split_nhd_title(text, url) -> dict:
     pattern = r''
     pattern_fail = r''
 
-    p_url = r'\[(?P<category>.*?)\]'
     p_title = r'(?P<title>.*?)'
-    p_subtitle = r'\[(?P<subtitle>.*?)\]'
-    p_size = r'\[(?P<size_num>[\d\.]+)\s*(?P<size_unit>[GMKTB]+)\]'
-    p_author = r'\[(?P<author>\S+)\]'
-
     if 'icat' in url:
+        p_url = r'\[(?P<category>.*?)\]'
         pattern += p_url
     pattern += p_title
     pattern_fail = pattern
     if 'ismalldescr' in url:
+        p_subtitle = r'\[(?P<subtitle>.*?)\]'
         pattern += p_subtitle
     if 'isize' in url:
+        p_size = r'\[(?P<size_num>[\d\.]+)\s*(?P<size_unit>[GMKTB]+)\]'
         pattern += p_size
         pattern_fail += p_size
     if 'iuplder' in url:
+        p_author = r'\[(?P<author>\S+)\]'
+
         pattern += p_author
         pattern_fail += p_author
 
-    match = re.match(pattern, text)
-    if not match:
-        match = re.match(pattern_fail, text)
-    if match:
+    if match := re.match(pattern, text) or re.match(pattern_fail, text):
         return match.groupdict()
 
 
@@ -111,7 +108,7 @@ def load_category_img(category) -> str:
     if not img_path.exists():
         return category
     with (img_path).open('rb') as f:
-        return 'data:image/png;base64,' + base64.b64encode(f.read()).decode()
+        return f'data:image/png;base64,{base64.b64encode(f.read()).decode()}'
 
 
 env.filters['split_nhd_title'] = split_nhd_title

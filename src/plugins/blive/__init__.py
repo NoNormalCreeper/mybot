@@ -135,9 +135,9 @@ blive = on_shell_command('blive', aliases={'bilibili_live', 'B站直播间', 'b�
 
 def get_id(event: MessageEvent):
     if isinstance(event, GroupMessageEvent):
-        return 'group_' + str(event.group_id)
+        return f'group_{str(event.group_id)}'
     else:
-        return 'private_' + str(event.user_id)
+        return f'private_{str(event.user_id)}'
 
 
 @blive.handle()

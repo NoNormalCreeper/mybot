@@ -5,7 +5,7 @@ from typing import Dict, Optional, List
 
 
 OPTIONS = ['full', 'regex', 'include']
-NULL_BANK = dict((option, {"0": {}}) for option in OPTIONS)
+NULL_BANK = {option: {"0": {}} for option in OPTIONS}
 
 
 class WordBank():
@@ -31,8 +31,7 @@ class WordBank():
         :return: 首先匹配成功的消息列表
         """
         for flag in range(len(OPTIONS)):
-            res = self.__match(user_id, msg, flag, to_me)
-            if res:
+            if res := self.__match(user_id, msg, flag, to_me):
                 return res
 
     def __match(self, user_id: str, msg: str, flag: int = 0, to_me: bool = False) -> Optional[List]:
@@ -47,7 +46,7 @@ class WordBank():
                                           **self.__data[type].get("0", {}))
 
         if flag == 0:
-            return bank.get(msg, []) or (bank.get('@' + msg, []) if to_me else [])
+            return bank.get(msg, []) or (bank.get(f'@{msg}', []) if to_me else [])
         elif flag == 1:
             for key in bank:
                 if to_me and key.startswith('@'):
@@ -96,8 +95,8 @@ class WordBank():
             if self.__data[type].get(user_id, {}).get(key, False):
                 del self.__data[type][user_id][key]
                 status = True
-            if self.__data[type].get(user_id, {}).get('@' + key, False):
-                del self.__data[type][user_id]['@' + key]
+            if self.__data[type].get(user_id, {}).get(f'@{key}', False):
+                del self.__data[type][user_id][f'@{key}']
                 status = True
         self.__save()
         return status

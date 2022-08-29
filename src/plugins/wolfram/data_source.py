@@ -18,7 +18,7 @@ async def get_wolframalpha_simple(input, params=(), **kwargs):
     )
     data = itertools.chain(params, data.items(), kwargs.items())
     query = urllib.parse.urlencode(tuple(data))
-    url = 'https://api.wolframalpha.com/v2/simple?' + query
+    url = f'https://api.wolframalpha.com/v2/simple?{query}'
 
     try:
         async with httpx.AsyncClient() as client:

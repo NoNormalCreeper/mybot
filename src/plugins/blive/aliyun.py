@@ -52,8 +52,7 @@ def upload_and_share(file_path: Path, upload_path: str, expiration: int = 24 * 3
     logger.info(f'upload {file_path} to {upload_path} successfully')
     time.sleep(30)
     upload_name = f'{upload_path}/{file_path.name}'
-    fids = [commander.path_list.get_path_fid(upload_name, update=False)]
-    if fids:
+    if fids := [commander.path_list.get_path_fid(upload_name, update=False)]:
         url = commander.disk.share_link(fids, time.time() + expiration)
         logger.info(f'create share link for {upload_name}, url: {url}')
         return url

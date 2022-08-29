@@ -57,7 +57,7 @@ async def to_msg(illusts) -> Message:
                     resp = await client.get(url, timeout=20)
                     result = resp.content
                 if result:
-                    msg.append('{} ({})'.format(illust['title'], illust['id']))
+                    msg.append(f"{illust['title']} ({illust['id']})")
                     msg.append(MessageSegment.image(result))
             except Exception as e:
                 logger.warning(f"Error downloading {url}: {e}")
@@ -71,7 +71,7 @@ async def get_by_ranking(mode='day', num=3) -> dict:
         illusts = await aapi.illust_ranking(mode)
         illusts = illusts['illusts']
         random.shuffle(illusts)
-        return illusts[0:num]
+        return illusts[:num]
 
 
 async def get_by_search(keyword, num=3) -> dict:
@@ -83,9 +83,9 @@ async def get_by_search(keyword, num=3) -> dict:
         illusts = sorted(
             illusts, key=lambda i: i['total_bookmarks'], reverse=True)
         if len(illusts) > num * 3:
-            illusts = illusts[0:int(len(illusts)/2)]
+            illusts = illusts[:len(illusts) // 2]
         random.shuffle(illusts)
-        return illusts[0:min(num, len(illusts))]
+        return illusts[:min(num, len(illusts))]
 
 
 async def get_by_id(work_id) -> dict:

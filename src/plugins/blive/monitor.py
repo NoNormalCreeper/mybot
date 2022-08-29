@@ -33,7 +33,14 @@ async def check_recorder(uid: str, info: dict):
     room_id = info['room_id']
     status = info['live_status']
     if status == 1:
-        if uid not in recorders or not recorders[uid].recording:
+        if uid in recorders and recorders[uid].recording:
+            recorder = recorders[uid]
+            if recorder.need_update_url:
+                play_url = await get_play_url(room_id)
+                if play_url:
+                    recorder.play_url = play_url
+                    recorder.need_update_url = False
+        else:
             play_url = await get_play_url(int(room_id))
             if not play_url:
                 return
@@ -45,32 +52,23 @@ async def check_recorder(uid: str, info: dict):
             thread = threading.Thread(target=recorder.record)
             thread.start()
             await send_record_msg(uid, f'{up_name} 录播启动...')
-        else:
-            recorder = recorders[uid]
-            if recorder.need_update_url:
-                play_url = await get_play_url(room_id)
-                if play_url:
-                    recorder.play_url = play_url
-                    recorder.need_update_url = False
-    else:
-        if uid in recorders:
-            recorder = recorders[uid]
-            if recorder.recording:
-                recorder.recording = False
-                if not recorder.uploading:
-                    thread = threading.Thread(target=recorder.upload)
-                    thread.start()
+    elif uid in recorders:
+        recorder = recorders[uid]
+        if recorder.recording:
+            recorder.recording = False
+            if not recorder.uploading:
+                thread = threading.Thread(target=recorder.upload)
+                thread.start()
+        elif not recorder.uploading:
+            if recorder.files:
+                thread = threading.Thread(target=recorder.upload)
+                thread.start()
             else:
-                if not recorder.uploading:
-                    if recorder.files:
-                        thread = threading.Thread(target=recorder.upload)
-                        thread.start()
-                    else:
-                        if recorder.urls:
-                            msg = f'{up_name} 的录播文件：\n' + \
-                                '\n'.join(recorder.urls)
-                            await send_record_msg(uid, msg)
-                        recorders.pop(uid)
+                if recorder.urls:
+                    msg = f'{up_name} 的录播文件：\n' + \
+                        '\n'.join(recorder.urls)
+                    await send_record_msg(uid, msg)
+                recorders.pop(uid)
 
 
 async def check_dynamic(uid: str):
@@ -117,9 +115,7 @@ async def live_monitor():
             live_status[uid] = status
             continue
         if status != live_status[uid]:
-            if status != 1 and live_status[uid] != 1:
-                pass
-            else:
+            if status == 1 or live_status[uid] == 1:
                 msg = await LiveInfo(info).format_msg()
                 if msg:
                     await send_live_msg(uid, msg)
@@ -169,14 +165,14 @@ async def send_bot_msg(user_id: str, msg):
 
 def user_type(user_id: str):
     p_group = r'group_(\d+)'
+    if match := re.fullmatch(p_group, user_id):
+        return 'group', match[1]
     p_private = r'private_(\d+)'
-    match = re.fullmatch(p_group, user_id)
-    if match:
-        return 'group', match.group(1)
-    match = re.fullmatch(p_private, user_id)
-    if match:
-        return 'private', match.group(1)
-    return '', user_id
+    return (
+        ('private', match[1])
+        if (match := re.fullmatch(p_private, user_id))
+        else ('', user_id)
+    )
 
 
 scheduler = require("nonebot_plugin_apscheduler").scheduler

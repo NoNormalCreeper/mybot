@@ -29,9 +29,12 @@ async def _(msg: Message = CommandArg(), tome: bool = EventToMe()):
     if not keyword:
         await pixiv.finish()
 
-    if not keyword.isdigit() and keyword not in ['日榜', '周榜', '月榜']:
-        if not tome:
-            await pixiv.finish()
+    if (
+        not keyword.isdigit()
+        and keyword not in ['日榜', '周榜', '月榜']
+        and not tome
+    ):
+        await pixiv.finish()
 
     msg = await get_pixiv(keyword)
     if not str(msg):
@@ -76,8 +79,6 @@ def parse_url(msg: Union[str, Message]):
     elif isinstance(msg, str):
         if msg.startswith('http'):
             img_url = msg.split()[0]
-        else:
-            match = re.search(r'\[CQ:image.*?url=(.*?)\]', msg)
-            if match:
-                img_url = match.group(1)
+        elif match := re.search(r'\[CQ:image.*?url=(.*?)\]', msg):
+            img_url = match[1]
     return img_url

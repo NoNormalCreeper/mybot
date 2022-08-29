@@ -36,9 +36,9 @@ PEM_GL = SUPERUSER
 
 def get_id(event: MessageEvent):
     if isinstance(event, GroupMessageEvent):
-        return 'group_' + str(event.group_id)
+        return f'group_{str(event.group_id)}'
     else:
-        return 'private_' + str(event.user_id)
+        return f'private_{str(event.user_id)}'
 
 
 wb = WordBank()
@@ -50,8 +50,7 @@ wordbank = on_message(priority=39)
 async def _(event: MessageEvent, msg: Message = EventMessage()):
     msg = unescape(str(msg)).strip()
     user_id = get_id(event)
-    results = wb.match(user_id, msg, event.is_tome())
-    if results:
+    if results := wb.match(user_id, msg, event.is_tome()):
         wordbank.block = True
         res = random.choice(results)
         nickname = event.sender.card or event.sender.nickname
@@ -80,15 +79,13 @@ async def _(msg: Message = CommandArg()):
 async def wb_add(matcher: Matcher, msg: Message, user_id: str):
     msg = unescape(str(msg))
     pattern = r"\s*(@|模糊|正则)*\s*问(.+?)答(.+)"
-    match = re.match(pattern, msg, re.S)
-    if match:
+    if match := re.match(pattern, msg, re.S):
         type, key, value = match.groups()
         key = key.strip()
         value = value.lstrip()
-        flag = 0 if not type else 2 if '模糊' in type else 1 if '正则' in type else 0
-        key = '@' + key if (type and '@' in type) else key
-        res = wb.add(user_id, key, value, flag)
-        if res:
+        flag = (2 if '模糊' in type else 1 if '正则' in type else 0) if type else 0
+        key = f'@{key}' if (type and '@' in type) else key
+        if res := wb.add(user_id, key, value, flag):
             await matcher.finish('我记住了~')
 
 
@@ -108,8 +105,7 @@ async def _(msg: Message = CommandArg()):
 
 async def wb_rm(matcher: Matcher, msg: Message, user_id: str):
     msg = unescape(str(msg)).strip()
-    res = wb.remove(user_id, msg)
-    if res:
+    if res := wb.remove(user_id, msg):
         await matcher.send('删除成功~')
 
 
@@ -128,6 +124,5 @@ async def _():
 
 
 async def wb_clear(matcher: Matcher, user_id: str):
-    res = wb.clear(user_id)
-    if res:
+    if res := wb.clear(user_id):
         await matcher.send('清空成功~')

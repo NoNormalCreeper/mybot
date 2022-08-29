@@ -15,9 +15,7 @@ async def get_live_info(uid: str = '', up_name: str = '') -> dict:
 
 async def get_live_info_by_uid(uid: str) -> dict:
     result = await get_live_info_by_uids([uid])
-    if uid in result:
-        return result[uid]
-    return {}
+    return result[uid] if uid in result else {}
 
 
 async def get_live_info_by_uids(uids: list) -> dict:
@@ -26,9 +24,7 @@ async def get_live_info_by_uids(uids: list) -> dict:
         async with httpx.AsyncClient() as client:
             resp = await client.post(url, data=json.dumps({'uids': uids}))
             result = resp.json()
-        if not result or result['code'] != 0:
-            return {}
-        return result['data']
+        return {} if not result or result['code'] != 0 else result['data']
     except Exception as e:
         logger.warning(f'Error in get_live_info_by_uids(): {e}')
         return {}
@@ -36,9 +32,7 @@ async def get_live_info_by_uids(uids: list) -> dict:
 
 async def get_live_info_by_name(up_name: str) -> dict:
     user_info = await get_user_info_by_name(up_name)
-    if not user_info:
-        return {}
-    return await get_live_info_by_uid(str(user_info['mid']))
+    return await get_live_info_by_uid(str(user_info['mid'])) if user_info else {}
 
 
 async def get_user_info_by_name(up_name: str) -> dict:
@@ -54,10 +48,7 @@ async def get_user_info_by_name(up_name: str) -> dict:
         if not result or result['code'] != 0:
             return {}
         users = result['data']['result']
-        for user in users:
-            if user['uname'] == up_name:
-                return user
-        return {}
+        return next((user for user in users if user['uname'] == up_name), {})
     except Exception as e:
         logger.warning(f'Error in get_user_info_by_name({up_name}): {e}')
         return {}

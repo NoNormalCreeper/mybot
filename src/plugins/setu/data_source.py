@@ -21,7 +21,7 @@ async def get_setu(keyword='', r18=False) -> Union[str, bytes]:
             return None
         if result['data']:
             setu_url = result['data'][0]['urls']['regular']
-            logger.info('Get setu url: ' + setu_url)
+            logger.info(f'Get setu url: {setu_url}')
 
             async with httpx.AsyncClient() as client:
                 resp = await client.get(setu_url, timeout=20)

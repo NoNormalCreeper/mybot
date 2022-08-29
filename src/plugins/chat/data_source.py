@@ -37,8 +37,8 @@ class ChatBot:
     async def get_reply(self, text: str, event_id: str, user_id: str) -> str:
         if not self.token:
             await self.refresh_token()
-            if not self.token:
-                return ''
+        if not self.token:
+            return ''
 
         url = f'{self.base_url}/rpc/2.0/unit/service/chat?access_token={self.token}'
         session_id = self.sessions.get(event_id)
@@ -78,9 +78,7 @@ thesaurus_data = json.load(thesaurus_path.open('r', encoding='utf-8'))
 
 
 async def get_anime_thesaurus(text):
-    if text in thesaurus_data:
-        return random.choice(thesaurus_data[text])
-    return ''
+    return random.choice(thesaurus_data[text]) if text in thesaurus_data else ''
 
 
 chat_bot = ChatBot()

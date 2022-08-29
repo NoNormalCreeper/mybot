@@ -33,8 +33,7 @@ async def _(arg: Message = CommandArg()):
     if not msg:
         await mc.finish()
     if msg.startswith('status'):
-        addr = msg.replace('status', '', 1).strip()
-        if addr:
+        if addr := msg.replace('status', '', 1).strip():
             status = await get_mcstatus(addr)
             if status:
                 await mc.finish(status)
@@ -44,8 +43,7 @@ async def _(arg: Message = CommandArg()):
         types = ['avatar', 'head', 'body', 'skin', 'cape', 'model']
         for t in types:
             if msg.startswith(t):
-                username = msg.replace(t, '', 1).strip()
-                if username:
+                if username := msg.replace(t, '', 1).strip():
                     uuid = await get_mc_uuid(username)
                     if not uuid:
                         await mc.finish('出错了，请稍后再试')
@@ -170,10 +168,10 @@ dynmap = on_shell_command('dynmap', parser=dynmap_parser,
 
 
 def get_id(event: Event):
-    if isinstance(event, GroupMessageEvent) or isinstance(event, PokeNotifyEvent):
-        return 'group_' + str(event.group_id)
+    if isinstance(event, (GroupMessageEvent, PokeNotifyEvent)):
+        return f'group_{str(event.group_id)}'
     else:
-        return 'private_' + str(event.get_user_id())
+        return f'private_{str(event.get_user_id())}'
 
 
 @dynmap.handle()
@@ -189,9 +187,8 @@ async def _poke_status(event: Event) -> bool:
     if isinstance(event, PokeNotifyEvent) and event.is_tome():
         user_id = get_id(event)
         dynmap_list = get_dynmap_list()
-        if user_id in dynmap_list:
-            if dynmap_list[user_id]['poke']:
-                return True
+        if user_id in dynmap_list and dynmap_list[user_id]['poke']:
+            return True
     return False
 
 

@@ -23,11 +23,12 @@ tts_config = Config.parse_obj(get_driver().config.dict())
 
 async def get_voice(text, type=0) -> Union[str, BytesIO]:
     try:
-        if langid.classify(text)[0] == 'ja':
-            voice = await get_ai_voice(text, type)
-        else:
-            voice = await get_tx_voice(text, type)
-        return voice
+        return (
+            await get_ai_voice(text, type)
+            if langid.classify(text)[0] == 'ja'
+            else await get_tx_voice(text, type)
+        )
+
     except Exception as e:
         logger.warning(f'Error in get_voice({text}): {e}')
         return None
@@ -108,10 +109,8 @@ async def get_ai_voice_url(text, type=0) -> str:
         resp = await client.get(url, params=params)
         result = resp.text
 
-    match_obj = re.search(r'"url":"(.*?)"', result)
-    if match_obj:
-        mp3_url = 'https:' + match_obj.group(1).replace('\/', '/')
-        return mp3_url
+    if match_obj := re.search(r'"url":"(.*?)"', result):
+        return 'https:' + match_obj[1].replace('\/', '/')
     return ''
 
 

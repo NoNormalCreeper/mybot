@@ -16,11 +16,12 @@ class DupeError(Exception):
 
 def _load_rss_list() -> Dict[str, List[RSS]]:
     try:
-        rss_list = {}
         json_list: dict = json.load(rss_path.open('r', encoding='utf-8'))
-        for user_id, user_rss_list in json_list.items():
-            rss_list[user_id] = [RSS.from_json(rss) for rss in user_rss_list]
-        return rss_list
+        return {
+            user_id: [RSS.from_json(rss) for rss in user_rss_list]
+            for user_id, user_rss_list in json_list.items()
+        }
+
     except FileNotFoundError:
         return {}
 
@@ -30,9 +31,11 @@ _rss_list = _load_rss_list()
 
 def dump_rss_list():
     rss_path.parent.mkdir(parents=True, exist_ok=True)
-    json_list = {}
-    for user_id, user_rss_list in _rss_list.items():
-        json_list[user_id] = [rss.to_json() for rss in user_rss_list]
+    json_list = {
+        user_id: [rss.to_json() for rss in user_rss_list]
+        for user_id, user_rss_list in _rss_list.items()
+    }
+
     json.dump(
         json_list,
         rss_path.open('w', encoding='utf-8'),

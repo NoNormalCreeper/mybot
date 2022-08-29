@@ -26,8 +26,7 @@ class QCloudClient:
                 Key=filename,
                 EnableMD5=False
             )
-            url = self.config.uri(self.bucket, path=filename)
-            return url
+            return self.config.uri(self.bucket, path=filename)
         except CosException:
-            logger.warning('upload file to qcloud cos failed: ' + filename)
+            logger.warning(f'upload file to qcloud cos failed: {filename}')
             return ''

@@ -39,9 +39,7 @@ def get_dynmap_list():
 
 
 def get_dynmap_url(user_id: str) -> str:
-    if user_id in _dynmap_list:
-        return _dynmap_list[user_id].get('url', '')
-    return ''
+    return _dynmap_list[user_id].get('url', '') if user_id in _dynmap_list else ''
 
 
 def get_update_url(user_id: str) -> str:
@@ -63,7 +61,7 @@ def get_login_status(user_id: str) -> bool:
 
 
 async def fetch_update_url(url: str) -> str:
-    url_config = url + '/up/configuration'
+    url_config = f'{url}/up/configuration'
     try:
         async with httpx.AsyncClient() as client:
             resp = await client.get(url_config)

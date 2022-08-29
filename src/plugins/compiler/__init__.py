@@ -35,4 +35,4 @@ async def _(msg: dict = RegexDict()):
     if not result:
         await compiler.finish('出错了，请稍后再试')
     else:
-        await compiler.finish(result['output'] if result['output'] else result['errors'])
+        await compiler.finish(result['output'] or result['errors'])

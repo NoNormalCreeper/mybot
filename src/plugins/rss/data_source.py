@@ -58,10 +58,8 @@ async def update_rss(rss: RSS) -> List[dict]:
             authors = []
             tags = []
             try:
-                for author in entry['authors']:
-                    authors.append(author['name'])
-                for tag in entry['tags']:
-                    tags.append(tag['term'])
+                authors.extend(author['name'] for author in entry['authors'])
+                tags.extend(tag['term'] for tag in entry['tags'])
             except:
                 pass
             new_entries.append({

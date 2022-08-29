@@ -24,9 +24,7 @@ async def get_mc_uuid(username: str) -> str:
         async with httpx.AsyncClient() as client:
             resp = await client.get(url)
             result = resp.json()
-        if not result:
-            return 'none'
-        return result.get('id', 'none')
+        return result.get('id', 'none') if result else 'none'
     except:
         return ''
 
@@ -79,7 +77,7 @@ async def get_mcmodel(uuid: str) -> BytesIO:
         async with get_new_page(viewport={"width": 200, "height": 400}) as page:
             await page.set_content(html)
             await asyncio.sleep(0.1)
-            for i in range(60):
+            for _ in range(60):
                 image = await page.screenshot(full_page=True)
                 images.append(Image.open(BytesIO(image)))
 

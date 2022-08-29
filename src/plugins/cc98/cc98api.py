@@ -105,7 +105,7 @@ class CC98_API_V2():
         expirein = data["expires_in"]
         self.token = token
         self.expiretime = int(time.time()) + expirein
-        self.s.headers.update({"authorization": "Bearer " + self.token})
+        self.s.headers.update({"authorization": f"Bearer {self.token}"})
 
     async def topic_new(self, from_=0, size=20):
         """
@@ -170,7 +170,7 @@ class CC98_API_V2():
             data["tag2"] = tag2
         if notifyPoster is not None:
             data["notifyPoster"] = notifyPoster
-        x = await self.s.put(self.ENDPOINT + f"post/{id}", json=data)
+        x = await self.s.put(f"{self.ENDPOINT}post/{id}", json=data)
         status = x.status_code == 200
         if not status:
             print("[edit failed] ", x.text)
@@ -183,8 +183,14 @@ class CC98_API_V2():
         """
         if filename is None:
             filename = 'filename.gif'
-        x = await self.s.post(self.ENDPOINT + "file?compressImage=false",
-                              files=[('files', (filename, fp, 'image/jpeg')), ('contentType', 'multipart/form-data')])
+        x = await self.s.post(
+            f"{self.ENDPOINT}file?compressImage=false",
+            files=[
+                ('files', (filename, fp, 'image/jpeg')),
+                ('contentType', 'multipart/form-data'),
+            ],
+        )
+
         return x.json()
 
     @auth
@@ -192,8 +198,14 @@ class CC98_API_V2():
         """
         上传一张头像
         """
-        x = await self.s.post(self.ENDPOINT + "file/portrait",
-                              files=[('files', ('头像.png', fp, 'image/png')), ('contentType', 'multipart/form-data')])
+        x = await self.s.post(
+            f"{self.ENDPOINT}file/portrait",
+            files=[
+                ('files', ('头像.png', fp, 'image/png')),
+                ('contentType', 'multipart/form-data'),
+            ],
+        )
+
         return x.json()
 
     @auth
@@ -201,8 +213,12 @@ class CC98_API_V2():
         """
         签到
         """
-        x = await self.s.post(self.ENDPOINT + "me/signin", data=data,
-                              headers={"Content-Type": "application/json"})
+        x = await self.s.post(
+            f"{self.ENDPOINT}me/signin",
+            data=data,
+            headers={"Content-Type": "application/json"},
+        )
+
         return x.status_code == 200
 
     @auth
@@ -247,14 +263,14 @@ class CC98_API_V2():
         """
         根据用户名获取用户信息
         """
-        return await self.fetch("/User/Name/" + username)
+        return await self.fetch(f"/User/Name/{username}")
 
     @auth
     async def topic_reply(self, id, content, title="", contenttype=0, parentId=0):
         data = {"content": content, "contentType": contenttype, "title": title}
         if parentId != 0:
             data["parentId"] = parentId
-        x = await self.s.post(self.ENDPOINT + f"topic/{id}/post", json=data)
+        x = await self.s.post(f"{self.ENDPOINT}topic/{id}/post", json=data)
         ret = (x.status_code == 200)
         if not ret:
             print(x.status_code)
@@ -310,8 +326,11 @@ class CC98_API_V2():
         返回评分是否成功 以及 返回的页面内容（在出错时可以显示给用户）
         """
         value = str(value)
-        x = await self.s.put(self.ENDPOINT + f"post/{postid}/rating",
-                             json={"value": {value}, "reason": {reason}})
+        x = await self.s.put(
+            f"{self.ENDPOINT}post/{postid}/rating",
+            json={"value": {value}, "reason": {reason}},
+        )
+
         return x.status_code == 200, x.text
 
     async def board_all(self):
@@ -337,7 +356,7 @@ class CC98_API_V2():
         result = {}
         parts = await self.board_all()
         for part in parts:
-            result.update({b["id"]: b for b in part["boards"]})
+            result |= {b["id"]: b for b in part["boards"]}
         return result
 
     @auth
@@ -345,8 +364,11 @@ class CC98_API_V2():
         """
         对一条回复进行发米
         """
-        x = await self.s.post(self.ENDPOINT + f"post/{id}/operation",
-                              json={"operationType": 0, "reason": reason, "wealth": wealth})
+        x = await self.s.post(
+            f"{self.ENDPOINT}post/{id}/operation",
+            json={"operationType": 0, "reason": reason, "wealth": wealth},
+        )
+
         return x.status_code == 200
 
     @auth
@@ -360,12 +382,12 @@ class CC98_API_V2():
 
     @auth
     async def add_favorite(self, id):
-        x = await self.s.put(self.ENDPOINT + f"me/favorite/{id}")
+        x = await self.s.put(f"{self.ENDPOINT}me/favorite/{id}")
         return x.status_code == 200
 
     @auth
     async def remove_favorite(self, id):
-        x = await self.s.delete(self.ENDPOINT + f"me/favorite/{id}")
+        x = await self.s.delete(f"{self.ENDPOINT}me/favorite/{id}")
         return x.status_code == 200
 
     @auth
@@ -385,7 +407,7 @@ class CC98_API_V2():
             data["tag1"] = int(tag1)
         if tag2 is not None:
             data["tag2"] = int(tag2)
-        url = self.ENDPOINT + f"board/{board}/topic"
+        url = f"{self.ENDPOINT}board/{board}/topic"
         x = await self.s.post(url, json=data)
         if x.status_code != 200:
             raise Exception(x.text)
@@ -417,8 +439,11 @@ class CC98_API_V2():
         返回数组或错误字符串 如["username1", "username2"] 再如 "parameter_error"
         建议调用时将错误转为异常 assert isinstance(result, list), "transfer failed: "+result
         """
-        x = await self.s.put(self.ENDPOINT + "me/transfer-wealth",
-                             json={"userNames": usernames, "wealth": amount, "reason": reason})
+        x = await self.s.put(
+            f"{self.ENDPOINT}me/transfer-wealth",
+            json={"userNames": usernames, "wealth": amount, "reason": reason},
+        )
+
         try:
             return x.json()
         except:
@@ -431,9 +456,13 @@ class CC98_API_V2():
         返回{likeCount: 4, dislikeCount: 1, likeState: 2}
         """
         assert action in ["like", "dislike"]
-        x = await self.s.put(self.ENDPOINT + f"post/{postid}/like", data="1" if action == "like" else "2")
+        x = await self.s.put(
+            f"{self.ENDPOINT}post/{postid}/like",
+            data="1" if action == "like" else "2",
+        )
+
         assert x.status_code == 200, "like PUT failed"
-        x = await self.s.get(self.ENDPOINT + f"post/{postid}/like")
+        x = await self.s.get(f"{self.ENDPOINT}post/{postid}/like")
         return x.json()
 
     @auth
@@ -463,8 +492,8 @@ class CC98_API_V2():
         设置当前用户头像url
         """
         if url.startswith("//"):
-            url = "https:" + url
-        x = await self.s.put(self.ENDPOINT + "me/portrait", data=f"{url}")
+            url = f"https:{url}"
+        x = await self.s.put(f"{self.ENDPOINT}me/portrait", data=f"{url}")
         return x.status_code == 200
 
     async def message_post(self, receiverId, content):
@@ -473,5 +502,8 @@ class CC98_API_V2():
         返回是否成功，错误信息
         """
         id = int(receiverId)
-        x = await self.s.post(self.ENDPOINT + "message", json={"receiverId": id, "content": content})
+        x = await self.s.post(
+            f"{self.ENDPOINT}message", json={"receiverId": id, "content": content}
+        )
+
         return x.status_code == 200, x.text

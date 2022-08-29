@@ -33,11 +33,7 @@ class RSS:
     def parse_url(url: str, base_url: str) -> str:
         if re.match(r'https?://', url, re.IGNORECASE):
             return url
-        if url[0] == '/':
-            url = base_url + url
-        else:
-            url = base_url + '/' + url
-        return url
+        return base_url + url if url[0] == '/' else f'{base_url}/{url}'
 
     @staticmethod
     def parse_time(raw_time: Union[datetime, time.struct_time, str]) -> datetime:

@@ -28,7 +28,7 @@ class Recorder:
             if not self.download():
                 self.need_update_url = True
             delay = 30
-            for i in range(delay):
+            for _ in range(delay):
                 if not self.recording:
                     break
                 time.sleep(1)
@@ -69,7 +69,9 @@ class Recorder:
                     return True
                 except:
                     logger.warning(
-                        f'Error while download live stream! retry {i}/{retry}' + traceback.format_exc())
+                        f'Error while download live stream! retry {i}/{retry}{traceback.format_exc()}'
+                    )
+
         return False
 
     def check_files(self, files: List[Path]) -> List[Path]:

@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 async def get_dynmap_updates(url: str):
     try:
         stamp = (datetime.now() - timedelta(minutes=2)).timestamp()
-        url += '/' + str(int(stamp * 1000))
+        url += f'/{int(stamp * 1000)}'
         async with httpx.AsyncClient() as client:
             resp = await client.get(url)
             result = resp.json()
@@ -35,9 +35,8 @@ async def get_status(url: str) -> str:
     )
     storm = result['hasStorm']
     thunder = result['isThundering']
-    weather = '☀' if not storm else '⛈' if thunder else '🌧'
-    status = f'当前在线：{players}\n服务器时间：{stime}\n服务器天气：{weather}'
-    return status
+    weather = ('⛈' if thunder else '🌧') if storm else '☀'
+    return f'当前在线：{players}\n服务器时间：{stime}\n服务器天气：{weather}'
 
 
 async def send_message(config, msg):

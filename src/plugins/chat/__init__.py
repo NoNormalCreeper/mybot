@@ -57,10 +57,7 @@ filter_patterns = [
 
 
 def filter_msg(msg: str = EventPlainText()):
-    for p in filter_patterns:
-        if re.search(p, msg):
-            return False
-    return True
+    return not any(re.search(p, msg) for p in filter_patterns)
 
 
 chat = on_message(rule=to_me(), block=True, priority=40)
@@ -73,11 +70,7 @@ async def first_receive(event: MessageEvent, msg: str = EventPlainText()):
     if not filter_msg(msg):
         await chat.finish()
 
-    if msg:
-        reply = await get_reply(msg, event)
-    else:
-        reply = random.choice(null_reply)
-
+    reply = await get_reply(msg, event) if msg else random.choice(null_reply)
     await handle_reply(chat, reply, event)
 
 
@@ -86,9 +79,8 @@ async def continue_receive(matcher: Matcher, event: MessageEvent, msg: str = Eve
         for word in end_word:
             if word in msg.lower():
                 await matcher.finish()
-        if msg:
-            reply = await get_reply(msg, event)
-            await handle_reply(matcher, reply, event)
+        reply = await get_reply(msg, event)
+        await handle_reply(matcher, reply, event)
 
 
 async def handle_reply(matcher: Matcher, reply: str, event: MessageEvent):
@@ -137,8 +129,7 @@ async def get_reply(msg: str, event: MessageEvent):
         return reply
 
     reply = await chat_bot.get_reply(msg, event_id, user_id)
-    reply = reply.replace('<USER-NAME>', username)
-    if reply:
+    if reply := reply.replace('<USER-NAME>', username):
         return reply
 
     return random.choice(error_reply)

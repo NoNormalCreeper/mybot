@@ -16,8 +16,7 @@ from .data_source import cc98_api, get_board_name, get_topics, \
 
 
 async def handle_emoji(matcher: Matcher, dirname: str, filename: str):
-    img = get_emoji(dirname, filename)
-    if img:
+    if img := get_emoji(dirname, filename):
         await matcher.send(MessageSegment.image(img))
     else:
         await matcher.send('找不到该表情')
@@ -164,9 +163,8 @@ async def split_msg(text: str, split_pattern: str, pattern: str, func) -> Messag
     texts = re.split(split_pattern, text)
     msgs = Message()
     for t in texts:
-        match = re.match(pattern, t)
-        if match:
-            result = await func(match.group(1))
+        if match := re.match(pattern, t):
+            result = await func(match[1])
             if not result:
                 continue
             msgs.append(result)

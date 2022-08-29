@@ -36,10 +36,10 @@ class Counter:
 
         if self.compare_msg(msg):
             self.count += 1
-            self.msg = msg
         else:
             self.count = 1
-            self.msg = msg
+
+        self.msg = msg
 
     def compare_msg(self, msg: Message):
         if not self.msg:
@@ -58,9 +58,9 @@ class Counter:
         if msg_type == 'text':
             text = msg2.data['text']
             if not text \
-                    or '此处消息的转义尚未被插件支持' in text \
-                    or '请使用最新版手机QQ体验新功能' in text \
-                    or re.fullmatch(r'\[\S+\]', text):
+                        or '此处消息的转义尚未被插件支持' in text \
+                        or '请使用最新版手机QQ体验新功能' in text \
+                        or re.fullmatch(r'\[\S+\]', text):
                 return False
             return msg1.data['text'] == msg2.data['text']
         elif msg_type == 'face':
@@ -91,6 +91,5 @@ async def _(event: GroupMessageEvent, msg: Message = EventMessage()):
         counter.add_msg(msg)
 
     if counter.count == repeat_config.repeat_count:
-        msg = counter.msg
-        if msg:
+        if msg := counter.msg:
             await repeat.finish(msg)

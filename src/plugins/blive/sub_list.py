@@ -33,9 +33,7 @@ def dump_sub_list():
 
 
 def get_sub_list(user_id: str) -> Dict[str, dict]:
-    if user_id not in _sub_list:
-        return {}
-    return _sub_list[user_id]
+    return {} if user_id not in _sub_list else _sub_list[user_id]
 
 
 def add_sub_list(user_id: str, uid: str, info: dict):

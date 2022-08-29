@@ -31,21 +31,15 @@ def get_sub_uids() -> list:
 
 
 def get_sub_users(uid: str) -> list:
-    if uid not in _uid_list:
-        return []
-    return _uid_list[uid].get('sub_users', [])
+    return [] if uid not in _uid_list else _uid_list[uid].get('sub_users', [])
 
 
 def get_dynamic_users(uid: str) -> list:
-    if uid not in _uid_list:
-        return []
-    return _uid_list[uid].get('dynamic_users', [])
+    return [] if uid not in _uid_list else _uid_list[uid].get('dynamic_users', [])
 
 
 def get_record_users(uid: str) -> list:
-    if uid not in _uid_list:
-        return []
-    return _uid_list[uid].get('record_users', [])
+    return [] if uid not in _uid_list else _uid_list[uid].get('record_users', [])
 
 
 def update_uid_list(sub_list: Dict[str, Dict[str, dict]]):

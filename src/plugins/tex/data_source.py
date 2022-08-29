@@ -10,7 +10,7 @@ dir_path = Path(__file__).parent / 'template'
 
 async def tex2pic(equation, fmt='png', border=2, resolution=1000) -> bytes:
     try:
-        multi_line = True if r'\\' in equation else False
+        multi_line = r'\\' in equation
 
         env = jinja2.Environment(
             loader=jinja2.FileSystemLoader(str(dir_path.absolute())))
@@ -22,24 +22,33 @@ async def tex2pic(equation, fmt='png', border=2, resolution=1000) -> bytes:
             tmp_dir = Path(tmp_dir_name)
             tmp_tex = tmp_dir / 'tmp.tex'
             tmp_pdf = tmp_dir / 'tmp.pdf'
-            tmp_out = tmp_dir / ('tmp.' + fmt)
+            tmp_out = tmp_dir / f'tmp.{fmt}'
             with tmp_tex.open('w') as f:
                 f.write(tex_file)
 
-            stdout = open(os.devnull, 'w')
-            p_open = subprocess.Popen('pdflatex -interaction=nonstopmode -pdf %s' % tmp_tex,
-                                      shell=True, cwd=str(tmp_dir), stdout=stdout, stderr=stdout)
-            p_open.wait()
-            stdout.close()
+            with open(os.devnull, 'w') as stdout:
+                p_open = subprocess.Popen(
+                    f'pdflatex -interaction=nonstopmode -pdf {tmp_tex}',
+                    shell=True,
+                    cwd=str(tmp_dir),
+                    stdout=stdout,
+                    stderr=stdout,
+                )
 
+                p_open.wait()
             if p_open.returncode != 0:
                 return None
 
             formats = {'jpg': 'jpg', 'jpeg': 'jpg',
                        'png': 'png', 'tiff': 'tiff', 'ppm': ''}
-            if fmt in formats.keys():
-                convert_cmd = f'pdftoppm -r %d -%s %s > %s' % \
-                    (resolution, formats[fmt], tmp_pdf, tmp_out)
+            if fmt in formats:
+                convert_cmd = 'pdftoppm -r %d -%s %s > %s' % (
+                    resolution,
+                    formats[fmt],
+                    tmp_pdf,
+                    tmp_out,
+                )
+
                 subprocess.check_call(convert_cmd, shell=True)
 
             return tmp_out.read_bytes()

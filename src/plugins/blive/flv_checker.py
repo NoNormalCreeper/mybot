@@ -29,7 +29,7 @@ class FlvChecker:
             current_length = dst.tell()
 
             tag_type = src.read(1)  # 读取tag类型
-            if tag_type == b'\x08' or tag_type == b'\x09':  # 8/9 audio/video
+            if tag_type in [b'\x08', b'\x09']:  # 8/9 audio/video
                 dst.write(tag_type)
 
                 size_data = src.read(3)
@@ -76,19 +76,17 @@ class FlvChecker:
                 self.last_timestamp_write[tag_type] += 10
             else:
                 self.last_timestamp_write[tag_type] = timestamp - \
+                        self.last_timestamp_read[tag_type] + \
+                        self.last_timestamp_write[tag_type]
+        elif self.last_timestamp_read[tag_type] - timestamp < 5 * 1000:
+            tmp = timestamp - \
                     self.last_timestamp_read[tag_type] + \
                     self.last_timestamp_write[tag_type]
-        else:  # 如果出现倒序时间戳
-            # 如果间隔不大，那么如实反馈
-            if self.last_timestamp_read[tag_type] - timestamp < 5 * 1000:
-                tmp = timestamp - \
-                    self.last_timestamp_read[tag_type] + \
-                    self.last_timestamp_write[tag_type]
-                if tmp < 0:
-                    tmp = 1
-                self.last_timestamp_write[tag_type] = tmp
-            else:  # 间隔十分巨大，那么重新开始即可
-                self.last_timestamp_write[tag_type] += 10
+            if tmp < 0:
+                tmp = 1
+            self.last_timestamp_write[tag_type] = tmp
+        else:  # 间隔十分巨大，那么重新开始即可
+            self.last_timestamp_write[tag_type] += 10
         self.last_timestamp_read[tag_type] = timestamp
 
         # 低于0xffffff部分
@@ -117,8 +115,6 @@ class FlvChecker:
                     break
             else:
                 pointer = 0
-        if not find_header:
-            pass
 
 
 if __name__ == '__main__':
